@@ -7,6 +7,8 @@
 package Watcher;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -33,13 +35,14 @@ public class JavaFXApplication4 extends Application {
         mainStage = stage;
         mainStage.setTitle("Watcher");
         mainStage.setScene(scene);
-        mainStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-
-            @Override
-            public void handle(WindowEvent t) {
-                FXMLDocumentController control = loader.getController();
-                control.shuttingDown();
-                System.exit(0);
+        mainStage.setOnCloseRequest((WindowEvent t) -> {
+            FXMLDocumentController control = loader.getController();
+            control.shuttingDown();
+            System.exit(0);
+        });
+        mainStage.iconifiedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean t, Boolean t1) -> {
+            if(t1.booleanValue()){
+                System.out.println("Close form");
             }
         });
         mainStage.show();

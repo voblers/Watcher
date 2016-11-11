@@ -81,7 +81,7 @@ public class ServiceHandler {
         }
         else if(serviceObject instanceof notificationService){
             if(notify == null)
-                notify = new notificationService();
+                notify = (notificationService) serviceObject;
         }
     }
     

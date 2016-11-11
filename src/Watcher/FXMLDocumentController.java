@@ -197,6 +197,11 @@ public class FXMLDocumentController implements Initializable {
                             setContextMenu(contextMenu);
                             setText(item);
                         }
+                        if(item!=null){}
+                        else{
+                            setGraphic(null);
+                            setText("");
+                        }
                     }
                 };
                 return cell;
@@ -380,9 +385,9 @@ public class FXMLDocumentController implements Initializable {
     }
 
     private void removeItem(Site inpSite) {
-        boolean flag = HSQL_Manager.removeSite(new Site(inpSite));
+        boolean flag = HSQL_Manager.removeSite(inpSite);
         if (flag) {
-            items.remove(inpSite);
+            items.remove(inpSite.getAddress());
             watcherManager.removeSite(inpSite);
         }
     }
