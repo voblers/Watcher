@@ -151,7 +151,7 @@ public class FXMLDocumentController implements Initializable {
         ServiceHandler.start(new notificationService());
         
         try {
-            HSQL_Manager.init("jdbc:hsqldb:file:C:/Users/BB3605/Projects/JavaFXApplication4/src/dbEnv/", "SA", "");
+            HSQL_Manager.init("jdbc:hsqldb:file:src/dbEnv/", "SA", "");
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
         }

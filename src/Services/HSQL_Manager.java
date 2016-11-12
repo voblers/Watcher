@@ -5,7 +5,6 @@
  */
 package Services;
 
-import Data.Const;
 import dao.Site;
 import dao.StatisticsObj;
 import dao.WatchObj;
@@ -39,23 +38,6 @@ public class HSQL_Manager {
     public static void exit() {
         try {
             connection.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public static void get() {
-        try {
-            ResultSet resultSet;
-            Statement statement;
-
-            statement = connection.createStatement();
-            resultSet = statement
-                    .executeQuery("SELECT Salary FROM public.SALARYDETAILS WHERE empid='54601A'");
-            while (resultSet.next()) {
-                System.out.println("EMPLOYEE Salary:"
-                        + resultSet.getString("Salary"));
-            }
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
         }
