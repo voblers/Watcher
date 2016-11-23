@@ -5,6 +5,8 @@
  */
 package Services;
 
+import Data.Const;
+import Notifications.TrayNotification;
 import dao.Site;
 import dao.StatisticsObj;
 import dao.WatchObj;
@@ -54,6 +56,7 @@ public class HSQL_Manager {
             return true;
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
+            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
             return false;
         }
     }
@@ -73,6 +76,7 @@ public class HSQL_Manager {
             return returnList;
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
+            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
             return returnList;
         }
     }
@@ -86,6 +90,7 @@ public class HSQL_Manager {
             return true;
         } catch (SQLException ex) {
             ex.printStackTrace();
+            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
             return false;
         }
     }
@@ -104,6 +109,7 @@ public class HSQL_Manager {
             statement.executeUpdate();
             return true;
         } catch (SQLException ex) {
+            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
             return false;
         }
     }
@@ -132,6 +138,7 @@ public class HSQL_Manager {
             return returnList;
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
+            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
             return returnList;
         }
     }
@@ -152,6 +159,7 @@ public class HSQL_Manager {
             return returnList;
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
+            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
             return returnList;
         }
     }
@@ -164,6 +172,7 @@ public class HSQL_Manager {
             statement.executeUpdate();
             return true;
         } catch (SQLException ex) {
+            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
             return false;
         }
     }
