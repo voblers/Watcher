@@ -5,15 +5,11 @@
  */
 package Watcher;
 
-import ErrorHandling.InternetWatcherServiceAlreadyStartedException;
 import ErrorHandling.SiteAlreadyAddedException;
-import ErrorHandling.StatusUpdaterServiceAlreadyStartedException;
 import ErrorHandling.WatchDogNotStartedException;
-import ErrorHandling.WatchDogTimerServiceAlreadyStartedException;
 import Services.GlobalServiceControlVariables;
 import Services.InternetWatcher;
 import Services.ServiceHandler;
-import Services.WatchDogTimer;
 import dao.Site;
 import dao.WatchObj;
 import java.util.ArrayList;
@@ -100,6 +96,10 @@ public class watcherManager {
         }
         ServiceHandler.stop(new InternetWatcher());
         isStarted = false;
+    }
+    
+    public static boolean ifRunning(){
+        return isStarted;
     }
 
     public static void enable() {

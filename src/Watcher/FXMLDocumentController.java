@@ -14,6 +14,7 @@ import ErrorHandling.WatchDogNotStartedException;
 import ErrorHandling.WatchDogTimerServiceAlreadyStartedException;
 import ErrorHandling.errDialog;
 import Listeners.listViewChangeListener;
+import Notifications.TrayNotification;
 import Services.HSQL_Manager;
 import Services.InternetWatcher;
 import Services.ServiceHandler;
@@ -119,26 +120,30 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     protected void addSite(ActionEvent event) {
-        if (powerSwitch.isSelected()) {
-            addSitePane.setVisible(true);
-            RotateTransition rt = new RotateTransition(Duration.millis(200), addSitePane);
-            rt.setFromAngle(180);
-            rt.setToAngle(0);
-            rt.setCycleCount(1);
-            rt.setInterpolator(Interpolator.EASE_IN);
-            fadeout(true);
-            rt.play();
-        } else {
-            new errDialog().showError(new WatchDogNotStartedException().toString());
-        }
+        addSitePane.setVisible(true);
+        RotateTransition rt = new RotateTransition(Duration.millis(200), addSitePane);
+        rt.setFromAngle(180);
+        rt.setToAngle(0);
+        rt.setCycleCount(1);
+        rt.setInterpolator(Interpolator.EASE_IN);
+        fadeout(true);
+        rt.play();
     }
 
     @FXML
     protected void startWatchDog(ActionEvent event) {
         if (powerSwitch.isSelected()) {
-            watcherManager.start();
-            changeStatusLabel("DETECTING...");
-            changeStatusPaneStyle(Const.detectingStyle);
+            if (items.isEmpty()) {
+                powerSwitch.setSelected(false);
+                if (watcherManager.ifRunning()) {
+                    watcherManager.stop();
+                }
+                new TrayNotification("There are no sites to run WatchDog on", Const.notificationInfo, 5).run();
+            } else {
+                watcherManager.start();
+                changeStatusLabel("DETECTING...");
+                changeStatusPaneStyle(Const.detectingStyle);
+            }
         } else {
             watcherManager.stop();
             changeStatusLabel("UNKNOWN");
@@ -149,7 +154,7 @@ public class FXMLDocumentController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         ServiceHandler.start(new notificationService());
-        
+
         try {
             HSQL_Manager.init("jdbc:hsqldb:file:src/dbEnv/", "SA", "");
         } catch (ClassNotFoundException | SQLException ex) {
@@ -197,8 +202,8 @@ public class FXMLDocumentController implements Initializable {
                             setContextMenu(contextMenu);
                             setText(item);
                         }
-                        if(item!=null){}
-                        else{
+                        if (item != null) {
+                        } else {
                             setGraphic(null);
                             setText("");
                         }
@@ -242,13 +247,13 @@ public class FXMLDocumentController implements Initializable {
 
     public void isInternet(boolean inpB) {
         if (inpB) {
-            if(powerSwitch.isSelected()){
+            if (powerSwitch.isSelected()) {
                 watcherManager.start();
             }
             SuspendPane.setVisible(false);
-        } else if (!inpB && powerSwitch.isSelected()){
-            if(!GlobalServiceControlVariables.InternetWatcher){
-                if(powerSwitch.isSelected()){
+        } else if (!inpB && powerSwitch.isSelected()) {
+            if (!GlobalServiceControlVariables.InternetWatcher) {
+                if (powerSwitch.isSelected()) {
                     watcherManager.stop();
                 }
                 SuspendPane.setVisible(true);
@@ -295,7 +300,14 @@ public class FXMLDocumentController implements Initializable {
     }
 
     public synchronized String getSelectedItem() {
-        return siteList.getSelectionModel().getSelectedItem().toString();
+        try {
+            return siteList.getSelectionModel().getSelectedItem().toString();
+        } catch (Exception ex) {
+            if (watcherManager.ifRunning()) {
+                watcherManager.stop();
+            }
+            return "";
+        }
     }
 
     public void shuttingDown() {
@@ -389,6 +401,12 @@ public class FXMLDocumentController implements Initializable {
         if (flag) {
             items.remove(inpSite.getAddress());
             watcherManager.removeSite(inpSite);
+            if (items.isEmpty()) {
+                watcherManager.stop();
+                changeStatusLabel("UNKNOWN");
+                changeStatusPaneStyle(Const.unknownStyle);
+                new TrayNotification("Disabling WatchDog because no items exists in the list", Const.notificationInfo, 5).run();
+            }
         }
     }
 
@@ -400,8 +418,8 @@ public class FXMLDocumentController implements Initializable {
     public synchronized processData getProcessor() {
         return processor;
     }
-    
-    public synchronized void showSelectedSite(String site){
+
+    public synchronized void showSelectedSite(String site) {
         System.out.println("Should go to site: " + site);
     }
 }
