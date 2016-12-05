@@ -7,15 +7,12 @@ package Notifications;
 
 import Watcher.JavaFXApplication4;
 import java.awt.AWTException;
-import java.awt.CheckboxMenuItem;
 import java.awt.Image;
-import java.awt.Menu;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.URL;
@@ -45,7 +42,7 @@ public class TrayService implements Runnable {
             @Override
             public void mouseClicked(MouseEvent e) {
         if (e.getClickCount() == 2) {
-            System.out.println("Open form");
+            JavaFXApplication4.show();
         }
     }
         });
@@ -56,9 +53,15 @@ public class TrayService implements Runnable {
         exitItem.addActionListener((ActionEvent e) -> {
             JavaFXApplication4.getStage().fireEvent(new WindowEvent(JavaFXApplication4.getStage(), WindowEvent.WINDOW_CLOSE_REQUEST));
         });
+        
+        MenuItem showUI = new MenuItem("Show UI");
+        showUI.addActionListener((ActionEvent e) -> {
+            JavaFXApplication4.show();
+        });
 
         //Add components to pop-up menu
         popup.add(exitItem);
+        popup.add(showUI);
 
         trayIcon.setPopupMenu(popup);
 

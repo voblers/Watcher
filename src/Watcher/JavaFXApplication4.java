@@ -7,9 +7,8 @@
 package Watcher;
 
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
+import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -42,9 +41,10 @@ public class JavaFXApplication4 extends Application {
         });
         mainStage.iconifiedProperty().addListener((ObservableValue<? extends Boolean> ov, Boolean t, Boolean t1) -> {
             if(t1.booleanValue()){
-                System.out.println("Close form");
+                hide();
             }
         });
+        Platform.setImplicitExit(false);
         mainStage.show();
     }
 
@@ -66,5 +66,13 @@ public class JavaFXApplication4 extends Application {
     
     public static Stage getStage(){
         return mainStage;
+    }
+    
+    public static void hide(){
+        mainStage.hide();
+    }
+    
+    public static void show(){
+        mainStage.show();
     }
 }
