@@ -39,9 +39,9 @@ public class WatchDog implements Runnable {
 
     public WatchDog(ArrayList<Site> inpSites) {
         watched = new ArrayList<>();
-        for (Site site : inpSites) {
+        inpSites.stream().forEach((site) -> {
             watched.add(new WatchObj(site));
-        }
+        });
     }
 
     /*public synchronized void add(Site inpSite) {
@@ -83,10 +83,11 @@ public class WatchDog implements Runnable {
             if (!watched.isEmpty() && !stop) {
                 Thread a = new Thread(() -> {
                     for (WatchObj obj : watched) {
-                        //System.out.println(watched.size());
-                        WatchObj status = getStatus(obj.getSite());
+                        if (watcherManager.ifRunning()) {
+                            //System.out.println(watched.size());
+                            WatchObj status = getStatus(obj.getSite());
                         //System.out.println(obj.getSite().getAddress() + " Status: " + status.getResponseCode());
-                        //if (status.getStatus() != Const.Exception) {
+                            //if (status.getStatus() != Const.Exception) {
                             //System.out.println("a");
                             if (status.getStatus() != obj.getStatus()) {
                                 obj.setStatus(status.getStatus());
@@ -94,7 +95,7 @@ public class WatchDog implements Runnable {
                                 obj.setResponseCode(status.getResponseCode());
                                 //System.out.println("d");
                                 if (status.getStatus() == Const.online) {
-                                    
+
                                 } else {
                                     ServiceHandler.getNotificationService().showNotification(obj.getSite().getAddress()
                                             + System.getProperty("line.separator") + "not Online!" + System.getProperty("line.separator")
@@ -109,7 +110,8 @@ public class WatchDog implements Runnable {
                                 }
                             }
                             HSQL_Manager.putNewStat(obj);
-                       // }
+                        }
+                        // }
                     }
                 });
                 a.setName("getStatus Thread");
@@ -169,17 +171,16 @@ public class WatchDog implements Runnable {
     }
 
     private synchronized void synhro() {
-        for (Site a : tempAdd) {
+        tempAdd.stream().forEach((a) -> {
             watched.add(new WatchObj(a));
-        }
-
-        for (Site b : tempRemove) {
+        });
+        tempRemove.stream().forEach((b) -> {
             for (int i = 0; i < watched.size(); i++) {
                 if (watched.get(i).getSite().getAddress().equals(b.getAddress())) {
                     watched.remove(i);
                 }
             }
-        }
+        });
 
         tempAdd.clear();
         tempRemove.clear();

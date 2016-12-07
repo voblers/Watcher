@@ -129,7 +129,7 @@ public class HSQL_Manager {
             statement = connection.createStatement();
             resultSet = statement.executeQuery("select count(*) AS total from " + tableName);
             resultSet.next();
-            
+
             return resultSet.getInt("total");
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
@@ -274,6 +274,66 @@ public class HSQL_Manager {
         } catch (SQLException ex) {
             new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
             return false;
+        }
+    }
+
+    public static String getSetting(String key) {
+        ResultSet resultSet;
+        PreparedStatement statement;
+        try {
+            statement = connection.prepareStatement("SELECT value FROM SETTINGS where key = ?");
+            statement.setString(1, key);
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                return resultSet.getString("value");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+
+    public static boolean setSetting(String key, String value) {
+        ResultSet resultSet;
+        PreparedStatement statement;
+        try {
+            statement = connection.prepareStatement("UPDATE SETTINGS SET value = ? where key = ?");
+            statement.setString(1, value);
+            statement.setString(2, key);
+            statement.executeUpdate();
+            return true;
+        } catch (SQLException ex) {
+            Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public static boolean insertSetting(String key, String value) {
+        ResultSet resultSet;
+        PreparedStatement statement;
+        try {
+            statement = connection.prepareStatement("INSERT INTO \"PUBLIC\".\"SETTINGS\"\n"
+                    + "( \"KEY\", \"VALUE\" )\n"
+                    + "VALUES ( ?, ?)");
+            statement.setString(1, key);
+            statement.setString(2, value);
+            statement.executeUpdate();
+            return true;
+        } catch (SQLException ex) {
+            Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+
+    public static void deleteSetting(String key) {
+        ResultSet resultSet;
+        PreparedStatement statement;
+        try {
+            statement = connection.prepareStatement("DELETE FROM SETTINGS where key = ?");
+            statement.setString(1, key);
+            statement.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

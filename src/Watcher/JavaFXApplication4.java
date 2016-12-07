@@ -8,6 +8,7 @@ package Watcher;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -26,6 +27,7 @@ public class JavaFXApplication4 extends Application {
     
     @Override
     public void start(Stage stage) throws Exception {
+        Platform.setImplicitExit(false);
         loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("FXMLDocument.fxml"));
         Parent root = (Parent) loader.load();
@@ -44,7 +46,12 @@ public class JavaFXApplication4 extends Application {
                 hide();
             }
         });
-        Platform.setImplicitExit(false);
+        mainStage.widthProperty().addListener((ObservableValue<? extends Number> ov, Number t, Number t1) -> {
+            System.out.println("Old width value: " + t + "; new value: " + t1);
+        });
+        mainStage.heightProperty().addListener((ObservableValue<? extends Number> ov, Number t, Number t1) -> {
+            System.out.println("Old height value: " + t + "; new value: " + t1);
+        });
         mainStage.show();
     }
 
@@ -73,6 +80,13 @@ public class JavaFXApplication4 extends Application {
     }
     
     public static void show(){
-        mainStage.show();
+        Platform.runLater(new Runnable() {
+
+            @Override
+            public void run() {
+                mainStage.show();
+            }
+        });
+        
     }
 }
