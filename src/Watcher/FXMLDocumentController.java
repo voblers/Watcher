@@ -155,12 +155,6 @@ public class FXMLDocumentController implements Initializable {
     public void initialize(URL url, ResourceBundle rb) {
         ServiceHandler.start(new notificationService());
 
-        try {
-            HSQL_Manager.init("jdbc:hsqldb:file:src/dbEnv/", "SA", "");
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
         int count = 0;
         for (Site a : HSQL_Manager.getSites()) {
             items.add(a.getAddress());
@@ -180,12 +174,8 @@ public class FXMLDocumentController implements Initializable {
 
         MenuItem deleteItem = new MenuItem("Delete");
         final ContextMenu contextMenu = new ContextMenu(deleteItem);
-        contextMenu.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent t) {
-                removeItem(new Site(siteList.getSelectionModel().getSelectedItem().toString()));
-            }
+        contextMenu.setOnAction((ActionEvent t) -> {
+            removeItem(new Site(siteList.getSelectionModel().getSelectedItem().toString()));
         });
         siteList.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
 
@@ -234,13 +224,9 @@ public class FXMLDocumentController implements Initializable {
             new errDialog().showError(sw.toString());
         }
 
-        removeFilter.setOnMousePressed(new EventHandler<MouseEvent>() {
-
-            @Override
-            public void handle(MouseEvent t) {
-                if (t.isPrimaryButtonDown()) {
-                    processor.cancelFilter(getSelectedItem());
-                }
+        removeFilter.setOnMousePressed((MouseEvent t) -> {
+            if (t.isPrimaryButtonDown()) {
+                processor.cancelFilter(getSelectedItem());
             }
         });
     }

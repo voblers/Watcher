@@ -26,9 +26,9 @@ import java.util.logging.Logger;
  * @author BB3605
  */
 public class HSQL_Manager {
-    
+
     private static Connection connection = null;
-    
+
     public static void init(String url, String user, String pass) throws ClassNotFoundException, SQLException {
         Class.forName("org.hsqldb.jdbcDriver");
         connection = DriverManager.getConnection(
@@ -37,7 +37,7 @@ public class HSQL_Manager {
         coldInit();
         connection.createStatement().execute("SET DATABASE SQL AVG SCALE 3");
     }
-    
+
     private static void coldInit() {
         try {
             connection.createStatement().execute("CREATE TABLE IF NOT EXISTS sites(\n"
@@ -54,10 +54,29 @@ public class HSQL_Manager {
                     + "response_code integer primary key,\n"
                     + "shortDesc varchar(1024),\n"
                     + "longDesc LONGVARCHAR );");
-            connection.createStatement().execute("CREATE TABLE settings (\n"
+            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS settings (\n"
                     + "key varchar(100) primary key,\n"
                     + "value varchar(2000)\n"
                     + ");");
+
+            connection.createStatement().execute("insert into settings (key, value)\n"
+                    + "select 'windowHeight', '900' from (values(0))\n"
+                    + "where not exists(\n"
+                    + "select *\n"
+                    + " from settings \n"
+                    + "where key='windowHeight')");
+            connection.createStatement().execute("insert into settings (key, value)\n"
+                    + "select 'windowWidth', '1500' from (values(0))\n"
+                    + "where not exists(\n"
+                    + "select *\n"
+                    + " from settings \n"
+                    + "where key='windowWidth')");
+            connection.createStatement().execute("insert into settings (key, value)\n"
+                    + "select 'windowMaximized', '0' from (values(0))\n"
+                    + "where not exists(\n"
+                    + "select *\n"
+                    + " from settings \n"
+                    + "where key='windowMaximized')");
             
             if (getRowCount("responsecodes") == 0) {
                 connection.createStatement().execute("insert into responsecodes values(100, 'Continue', 'The server has received the request headers and the client should proceed to send the request body (in the case of a request for which a body needs to be sent; for example, a POST request). Sending a large request body to a server after a request has been rejected for inappropriate headers would be inefficient. To have a server check the request''s headers, a client must send Expect: 100-continue as a header in its initial request and receive a 100 Continue status code in response before sending the body. The response 417 Expectation Failed indicates the request should not be continued.');\n"
@@ -119,28 +138,28 @@ public class HSQL_Manager {
                         + "insert into responsecodes values(510, 'Not Extended', 'Further extensions to the request are required for the server to fulfill it.');\n"
                         + "insert into responsecodes values(511, 'Network Authentication Required', 'The client needs to authenticate to gain network access. Intended for use by intercepting proxies used to control access to the network (e.g., \"captive portals\" used to require agreement to Terms of Service before granting full Internet access via a Wi-Fi hotspot).');");
             }
-            
+
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private static int getRowCount(String tableName) {
         try {
             ResultSet resultSet;
             Statement statement;
-            
+
             statement = connection.createStatement();
             resultSet = statement.executeQuery("select count(*) AS total from " + tableName);
             resultSet.next();
-            
+
             return resultSet.getInt("total");
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
             return -1;
         }
     }
-    
+
     public static void exit() {
         try {
             connection.close();
@@ -148,14 +167,14 @@ public class HSQL_Manager {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public static boolean putNewStat(WatchObj inpWatchObj) {
         try {
             PreparedStatement statement = connection.prepareStatement("insert into public.statistics(\"URL\", \"STATUS\",\"RESPONSE_CODE\") values (?,?,?)");
             statement.setString(1, inpWatchObj.getSite().getAddress());
             statement.setInt(2, inpWatchObj.getStatus());
             statement.setInt(3, inpWatchObj.getResponseCode());
-            
+
             statement.executeUpdate();
             return true;
         } catch (SQLException ex) {
@@ -164,19 +183,19 @@ public class HSQL_Manager {
             return false;
         }
     }
-    
+
     public static ArrayList<Site> getSites() {
         ArrayList<Site> returnList = new ArrayList<>();
         try {
             ResultSet resultSet;
             Statement statement;
-            
+
             statement = connection.createStatement();
             resultSet = statement.executeQuery("select site from public.sites");
             while (resultSet.next()) {
                 returnList.add(new Site(resultSet.getString("site")));
             }
-            
+
             return returnList;
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
@@ -184,12 +203,12 @@ public class HSQL_Manager {
             return returnList;
         }
     }
-    
+
     public static boolean addSite(Site inpSite) {
         try {
             PreparedStatement statement = connection.prepareStatement("INSERT INTO PUBLIC.SITES(\"SITE\") VALUES (?)");
             statement.setString(1, inpSite.getAddress());
-            
+
             statement.executeUpdate();
             return true;
         } catch (SQLException ex) {
@@ -198,18 +217,18 @@ public class HSQL_Manager {
             return false;
         }
     }
-    
+
     public static boolean removeSite(Site inpSite) {
         //System.out.println("Removing: " + inpSite.getAddress());
         try {
             PreparedStatement statement = connection.prepareStatement("DELETE FROM PUBLIC.SITES WHERE SITE = ?");
             statement.setString(1, inpSite.getAddress());
-            
+
             statement.executeUpdate();
-            
+
             statement = connection.prepareStatement("DELETE FROM PUBLIC.STATISTICS WHERE URL = ?");
             statement.setString(1, inpSite.getAddress());
-            
+
             statement.executeUpdate();
             return true;
         } catch (SQLException ex) {
@@ -217,13 +236,13 @@ public class HSQL_Manager {
             return false;
         }
     }
-    
+
     public static ArrayList<StatisticsObj> getStatistics(Site inpSite) {
         ArrayList<StatisticsObj> returnList = new ArrayList<>();
         try {
             ResultSet resultSet;
             PreparedStatement statement;
-            
+
             statement = connection.prepareStatement("with overall as (SELECT count(url) total FROM PUBLIC.STATISTICS\n"
                     + "where url = ?\n"
                     + "group by url)\n"
@@ -238,7 +257,7 @@ public class HSQL_Manager {
             while (resultSet.next()) {
                 returnList.add(new StatisticsObj(new WatchObj(resultSet.getInt("status"), new Site(resultSet.getString("url"))), resultSet.getDouble("res")));
             }
-            
+
             return returnList;
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
@@ -246,20 +265,20 @@ public class HSQL_Manager {
             return returnList;
         }
     }
-    
+
     public static ArrayList<detailsObject> getDetails(String site) {
         ArrayList<detailsObject> returnList = new ArrayList<>();
         try {
             ResultSet resultSet;
             PreparedStatement statement;
-            
+
             statement = connection.prepareStatement("SELECT a.URL, a.CHECK_DATE, a.RESPONSE_CODE, case b.shortDesc when is null then 'Unknown' else b.shortDesc end shortDesc, case b.longDesc when is null then 'Unknown' else b.longDesc end longDesc FROM STATISTICS a left join responsecodes b on a.response_code = b.response_code where url = ?");
             statement.setString(1, site);
             resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 returnList.add(new detailsObject(resultSet.getString("URL"), resultSet.getString("shortDesc"), resultSet.getString("longDesc"), resultSet.getTimestamp("CHECK_DATE").toLocalDateTime(), resultSet.getInt("RESPONSE_CODE")));
             }
-            
+
             return returnList;
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
@@ -267,12 +286,12 @@ public class HSQL_Manager {
             return returnList;
         }
     }
-    
+
     public static boolean clearStat(String site) {
         try {
             PreparedStatement statement = connection.prepareStatement("DELETE FROM PUBLIC.STATISTICS WHERE URL = ?");
             statement.setString(1, site);
-            
+
             statement.executeUpdate();
             return true;
         } catch (SQLException ex) {
@@ -280,8 +299,16 @@ public class HSQL_Manager {
             return false;
         }
     }
-    
-    public static String getSetting(String key) {
+
+    public static int getSettingInt(String key) {
+        return Integer.valueOf(getSettingString(key)).intValue();
+    }
+
+    public static double getSettingDouble(String key) {
+        return Double.valueOf(getSettingString(key));
+    }
+
+    public static String getSettingString(String key) {
         ResultSet resultSet;
         PreparedStatement statement;
         try {
@@ -296,7 +323,16 @@ public class HSQL_Manager {
         }
         return null;
     }
-    
+
+    public static boolean setSetting(String key, Number value) {
+        return setSetting(key, value.toString());
+    }
+
+    public static boolean setSetting(String key, int value) {
+        String insValue = String.valueOf(value);
+        return setSetting(key, insValue);
+    }
+
     public static boolean setSetting(String key, String value) {
         ResultSet resultSet;
         PreparedStatement statement;
@@ -311,7 +347,16 @@ public class HSQL_Manager {
         }
         return false;
     }
-    
+
+    public static boolean insertSetting(String key, Number value) {
+        return insertSetting(key, value.toString());
+    }
+
+    public static boolean insertSetting(String key, int value) {
+        String insValue = String.valueOf(value);
+        return insertSetting(key, insValue);
+    }
+
     public static boolean insertSetting(String key, String value) {
         ResultSet resultSet;
         PreparedStatement statement;
@@ -328,7 +373,7 @@ public class HSQL_Manager {
         }
         return false;
     }
-    
+
     public static void deleteSetting(String key) {
         ResultSet resultSet;
         PreparedStatement statement;

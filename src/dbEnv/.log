@@ -2,5 +2,12 @@
 CREATE TABLE IF NOT EXISTS sites(\u000a\u0009id INTEGER IDENTITY PRIMARY KEY,\u000a\u0009site varchar(1024)\u000a\u0009)
 CREATE TABLE IF NOT EXISTS statistics(\u000a  id INTEGER IDENTITY PRIMARY KEY,\u000a  url VARCHAR(1024),\u000a  check_date timestamp default sysdate,\u000a  status INTEGER,\u000a  response_code integer) 
 CREATE TABLE IF NOT EXISTS responsecodes(\u000aresponse_code integer primary key,\u000ashortDesc varchar(1024),\u000alongDesc LONGVARCHAR )
+CREATE TABLE IF NOT EXISTS settings (\u000akey varchar(100) primary key,\u000avalue varchar(2000)\u000a)
 SET DATABASE SQL AVG SCALE 3
+DELETE FROM SETTINGS WHERE KEY='windowMaximized'
+INSERT INTO SETTINGS VALUES('windowMaximized','1')
+COMMIT
+DELETE FROM SETTINGS WHERE KEY='windowMaximized'
+INSERT INTO SETTINGS VALUES('windowMaximized','0')
+COMMIT
 DISCONNECT
