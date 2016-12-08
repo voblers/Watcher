@@ -175,5 +175,5 @@ INSERT INTO RESPONSECODES VALUES(508,'Loop Detected','The server detected an inf
 INSERT INTO RESPONSECODES VALUES(510,'Not Extended','Further extensions to the request are required for the server to fulfill it.')
 INSERT INTO RESPONSECODES VALUES(511,'Network Authentication Required','The client needs to authenticate to gain network access. Intended for use by intercepting proxies used to control access to the network (e.g., "captive portals" used to require agreement to Terms of Service before granting full Internet access via a\u00a0Wi-Fi hotspot).')
 INSERT INTO SETTINGS VALUES('windowHeight','875.0')
-INSERT INTO SETTINGS VALUES('windowMaximized','1')
+INSERT INTO SETTINGS VALUES('windowMaximized','0')
 INSERT INTO SETTINGS VALUES('windowWidth','1420.0')

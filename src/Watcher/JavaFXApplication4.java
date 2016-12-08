@@ -10,6 +10,7 @@ import Services.HSQL_Manager;
 import static Services.HSQL_Manager.getSettingDouble;
 import static Services.HSQL_Manager.getSettingInt;
 import static Services.HSQL_Manager.setSetting;
+import impl.org.controlsfx.tools.rectangle.Rectangles2D;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,6 +20,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
@@ -98,6 +100,11 @@ public class JavaFXApplication4 extends Application {
         mainStage.setWidth(getSettingDouble("windowWidth"));
         mainStage.setHeight(getSettingDouble("windowHeight"));
         mainStage.show();
+        
+        Rectangle2D bounds = Screen.getScreens().get(0).getVisualBounds();
+        mainStage.setX(bounds.getMinX() + 100);
+        mainStage.setY(bounds.getMinY() + 100);
+        System.out.println(currentScreenIndex());
     }
 
     /**
@@ -135,5 +142,18 @@ public class JavaFXApplication4 extends Application {
             mainStage.show();
         });
         
+    }
+    
+    private int currentScreenIndex(){
+        double scX = mainStage.getX();
+        int number = 0;
+
+        for( Screen src: Screen.getScreens())
+        {
+            if(scX < src.getVisualBounds().getMaxX())break;
+            else number++;
+        }
+
+        return number;
     }
 }
