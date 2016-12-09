@@ -17,7 +17,6 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
@@ -35,6 +34,12 @@ public class JavaFXApplication4 extends Application {
     
     @Override
     public void start(Stage stage) throws Exception {
+        try {
+            HSQL_Manager.init("jdbc:hsqldb:file:src/dbEnv/", "SA", "");
+        } catch (ClassNotFoundException | SQLException ex) {
+            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         Platform.setImplicitExit(false);
         loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("FXMLDocument.fxml"));
@@ -83,14 +88,7 @@ public class JavaFXApplication4 extends Application {
             mainStage.setMaximized(false);
         }
         
-        mainStage.setWidth(getSettingDouble("windowWidth"));
-        mainStage.setHeight(getSettingDouble("windowHeight"));
         mainStage.show();
-        
-        Rectangle2D bounds = Screen.getScreens().get(0).getVisualBounds();
-        mainStage.setX(bounds.getMinX() + 100);
-        mainStage.setY(bounds.getMinY() + 100);
-        System.out.println(currentScreenIndex());
     }
 
     /**
@@ -101,13 +99,7 @@ public class JavaFXApplication4 extends Application {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
-        try {
-            HSQL_Manager.init("jdbc:hsqldb:file:src/dbEnv/", "SA", "");
-        } catch (ClassNotFoundException | SQLException ex) {
-            Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
+    public static void main(String[] args) {        
         launch(args);
     }
     
@@ -136,10 +128,10 @@ public class JavaFXApplication4 extends Application {
 
         for( Screen src: Screen.getScreens())
         {
-            if(scX < src.getVisualBounds().getMaxX())break;
+            if(scX < src.getVisualBounds().getMaxX())
+                break;
             else number++;
         }
-
         return number;
     }
 }

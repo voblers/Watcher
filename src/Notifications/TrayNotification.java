@@ -71,6 +71,7 @@ public class TrayNotification implements Runnable {
                     notification.showWarning();
                     break;
             }
+            
         });
     }
 

@@ -6,21 +6,24 @@
 package Watcher;
 
 import Data.Const;
+import ErrorHandling.WatchDogNotStartedException;
 import Services.HSQL_Manager;
 import Services.ServiceHandler;
 import dao.Site;
 import dao.WatchObj;
+import dao.offlineQueueItem;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.event.Event;
-import javafx.event.EventHandler;
 
 /**
  *
@@ -28,14 +31,17 @@ import javafx.event.EventHandler;
  */
 public class WatchDog implements Runnable {
 
-    private ArrayList<WatchObj> watched;
+    private final ArrayList<WatchObj> watched;
     private volatile ArrayList<Site> tempAdd = new ArrayList<>();
     private volatile ArrayList<Site> tempRemove = new ArrayList<>();
+    private final ArrayList<offlineQueueItem> offlineQueue = new ArrayList<>();
 
     private boolean canRun = false;
     private boolean stop = false;
     private boolean killedFlag = false;
     private volatile boolean needUpdate = false;
+
+    private final int notificationLevel = 5;
 
     public WatchDog(ArrayList<Site> inpSites) {
         watched = new ArrayList<>();
@@ -84,49 +90,45 @@ public class WatchDog implements Runnable {
                 Thread a = new Thread(() -> {
                     for (WatchObj obj : watched) {
                         if (watcherManager.ifRunning()) {
-                            //System.out.println(watched.size());
                             WatchObj status = getStatus(obj.getSite());
-                        //System.out.println(obj.getSite().getAddress() + " Status: " + status.getResponseCode());
-                            //if (status.getStatus() != Const.Exception) {
-                            //System.out.println("a");
                             if (status.getStatus() != obj.getStatus()) {
                                 obj.setStatus(status.getStatus());
-                                //System.out.println("b");
                                 obj.setResponseCode(status.getResponseCode());
-                                //System.out.println("d");
-                                if (status.getStatus() == Const.online) {
-
-                                } else {
-                                    ServiceHandler.getNotificationService().showNotification(obj.getSite().getAddress()
-                                            + System.getProperty("line.separator") + "not Online!" + System.getProperty("line.separator")
-                                            + "Response code: " + obj.getResponseCode(), Const.notificationError, new EventHandler() {
-
-                                                @Override
-                                                public void handle(Event t) {
-                                                    FXMLDocumentController control = JavaFXApplication4.getLoader().getController();
-                                                    control.showSelectedSite(obj.getSite().getAddress());
-                                                }
-                                            }, 0);
-                                }
                             }
-                            HSQL_Manager.putNewStat(obj);
+                            if (status.getStatus() != Const.online) {
+                                notOnline(obj);
+                            } else {
+                                HSQL_Manager.putNewStat(obj);
+                            }
                         }
                         // }
                     }
-                });
-                a.setName("getStatus Thread");
-                a.start();
-            }
+                    
+                    Iterator<offlineQueueItem> offlineQueueItemIterator = offlineQueue.iterator();
+                    while (offlineQueueItemIterator.hasNext()) {
+                        try {
+                            if (watcherManager.getStatus(new Site(offlineQueueItemIterator.next().getSite())).getStatus() == Const.online) {
+                                offlineQueueItemIterator.remove();
+                            }
+                        } catch (WatchDogNotStartedException ex) {
+                        }
+                    }
+                    });
+                    a.setName("getStatus Thread");
+                    a.start();
+                }
 
             canRun = false;
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(WatchDog.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            //}
         }
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(WatchDog.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        //}
-    }
+
+    
 
     private WatchObj getStatus(Site inpSite) {
         HttpURLConnection connection = null;
@@ -202,6 +204,34 @@ public class WatchDog implements Runnable {
 
     public synchronized boolean isKilled() {
         return killedFlag;
+    }
+
+    private void notOnline(WatchObj obj) {
+
+        for (offlineQueueItem a : offlineQueue) {
+            try {
+                if (watcherManager.getStatus(new Site(a.getSite())).getStatus() == Const.online) {
+                    offlineQueue.remove(a);
+                }
+            } catch (WatchDogNotStartedException ex) {
+            }
+
+            if (a.getSite().equals(obj.getSite().getAddress())) {
+                a.updateSite();
+
+                if (a.getCount() >= notificationLevel) {
+                    ServiceHandler.getNotificationService().showNotification(obj.getSite().getAddress()
+                            + System.getProperty("line.separator") + "not Online!" + System.getProperty("line.separator")
+                            + "Response code: " + obj.getResponseCode(), Const.notificationError, (Event t) -> {
+                                FXMLDocumentController control = JavaFXApplication4.getLoader().getController();
+                                control.showSelectedSite(obj.getSite().getAddress());
+                            }, 0);
+                    HSQL_Manager.putNewStat(obj);
+                }
+                return;
+            }
+        }
+        offlineQueue.add(new offlineQueueItem(obj.getSite().getAddress()));
     }
 
 }
