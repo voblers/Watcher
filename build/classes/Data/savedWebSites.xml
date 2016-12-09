@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+
+
+<www>
+    <site>
+        <adress>http://10.33.48.121:7082/ib/site/login</adress>
+    </site>
+    <site>
+        <adress>http://www.danskebank.lv</adress>
+    </site>
+</www>

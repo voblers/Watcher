@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0" xmlns:jfx="http://javafx.com" href="Watcher.jnlp">
+  <information>
+    <title>Watcher</title>
+    <vendor>BB3605</vendor>
+    <description>null</description>
+    <offline-allowed/>
+  </information>
+  <resources>
+    <j2se version="1.6+" java-vm-args="-Djava.net.preferIPv4Stack=true "  href="http://java.sun.com/products/autodl/j2se"/>
+    <jar href="Watcher.jar" size="5116769" download="eager" />
+    <jar href="lib\commons-validator-1.4.0.jar" size="176897" download="eager" />
+    <jar href="lib\controlsfx-8.40.12.jar" size="996389" download="eager" />
+    <jar href="lib\hsqldb.jar" size="1515894" download="eager" />
+    <jar href="lib\sqltool.jar" size="147929" download="eager" />
+  </resources>
+  <applet-desc  width="800" height="600" main-class="com.javafx.main.NoJavaFXFallback"  name="Watcher" >
+    <param name="requiredFXVersion" value="8.0+"/>
+  </applet-desc>
+  <jfx:javafx-desc  width="800" height="600" main-class="Watcher.JavaFXApplication4"  name="Watcher" />
+  <update check="always"/>
+</jnlp>

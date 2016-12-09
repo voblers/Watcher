@@ -10,20 +10,16 @@ import Services.HSQL_Manager;
 import static Services.HSQL_Manager.getSettingDouble;
 import static Services.HSQL_Manager.getSettingInt;
 import static Services.HSQL_Manager.setSetting;
-import impl.org.controlsfx.tools.rectangle.Rectangles2D;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.input.MouseEvent;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -36,7 +32,6 @@ public class JavaFXApplication4 extends Application {
     
     private static FXMLLoader loader;
     private static Stage mainStage;
-    private boolean widthChanged, heightChanged = false;
     
     @Override
     public void start(Stage stage) throws Exception {
@@ -68,19 +63,10 @@ public class JavaFXApplication4 extends Application {
             }
         });
         mainStage.widthProperty().addListener((ObservableValue<? extends Number> ov, Number t, Number t1) -> {
-            widthChanged = true;
+            setSetting("windowWidth", mainStage.getWidth());
         });
         mainStage.heightProperty().addListener((ObservableValue<? extends Number> ov, Number t, Number t1) -> {
-            heightChanged = true;
-        });
-        
-        mainStage.addEventFilter(MouseEvent.MOUSE_RELEASED, (MouseEvent t) -> {
-            if(heightChanged){
-                setSetting("windowHeight", mainStage.getHeight());
-            }
-            if(widthChanged){
-                setSetting("windowWidth", mainStage.getWidth());
-            }
+            setSetting("windowHeight", mainStage.getHeight());
         });
         
         if (getSettingDouble("windowWidth") > Screen.getPrimary().getVisualBounds().getWidth()){

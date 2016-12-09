@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.effect.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane id="AnchorPane" fx:id="anchorPane" prefHeight="685.0" prefWidth="1042.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="Watcher.FXMLDocumentController">
+  <children>
+    <BorderPane prefHeight="200.0" prefWidth="320.0" visible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <center>
+        <SplitPane disable="false" dividerPositions="0.05828220858895705" focusTraversable="true" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
+          <items>
+            <Label fx:id="statusLabel" alignment="CENTER" blendMode="MULTIPLY" contentDisplay="CENTER" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefHeight="62.0" prefWidth="440.0" style="-fx-background-color: #858585" text="UNKNOWN">
+              <font>
+                <Font name="System Bold" size="24.0" />
+              </font>
+            </Label>
+            <Accordion fx:id="sections">
+              <expandedPane>
+                <TitledPane id="x3" fx:id="chartPane" animated="false" text="Chart">
+                  <content>
+                    <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                      <children>
+                        <PieChart id="PieChart" fx:id="uptime" minHeight="140.0" prefHeight="239.0" prefWidth="436.0" title="" titleSide="TOP" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                      </children>
+                    </AnchorPane>
+                  </content>
+                </TitledPane>
+              </expandedPane>
+              <panes>
+                <fx:reference source="chartPane" />
+                <TitledPane id="x2" fx:id="detailsPane" animated="false" text="Details">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                      <children>
+                        <BorderPane prefHeight="263.0" prefWidth="436.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                          <bottom>
+                            <HBox alignment="CENTER_RIGHT" fillHeight="true" prefHeight="31.0" prefWidth="436.0" spacing="10.0">
+                              <children>
+                                <Button fx:id="removeFilter" disable="false" focusTraversable="false" mnemonicParsing="false" text="⟳" HBox.hgrow="ALWAYS">
+                                  <HBox.margin>
+                                    <Insets />
+                                  </HBox.margin>
+                                </Button>
+                                <Button fx:id="cl" mnemonicParsing="false" onMousePressed="#clear" text="Clear Statistics" />
+                              </children>
+                              <padding>
+                                <Insets />
+                              </padding>
+                            </HBox>
+                          </bottom>
+                          <center>
+                            <TableView fx:id="detailedData" prefHeight="263.0" prefWidth="436.0" />
+                          </center>
+                        </BorderPane>
+                      </children>
+                    </AnchorPane>
+                  </content>
+                </TitledPane>
+              </panes>
+            </Accordion>
+          </items>
+        </SplitPane>
+      </center>
+      <left>
+        <AnchorPane prefHeight="200.0" prefWidth="200.0">
+          <children>
+            <BorderPane prefHeight="385.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+              <bottom>
+                <ToolBar>
+                  <items>
+                    <Button fx:id="addSite" mnemonicParsing="false" onAction="#addSite" text="+" />
+                  </items>
+                </ToolBar>
+              </bottom>
+              <center>
+                <ListView fx:id="siteList" editable="true" maxWidth="500.0" prefHeight="-1.0">
+                  <effect>
+                    <Glow />
+                  </effect>
+                </ListView>
+              </center>
+            </BorderPane>
+          </children>
+        </AnchorPane>
+      </left>
+      <top>
+        <ToolBar>
+          <items>
+            <ToggleButton fx:id="powerSwitch" mnemonicParsing="false" onAction="#startWatchDog" text="On/Off" />
+          </items>
+        </ToolBar>
+      </top>
+    </BorderPane>
+    <BorderPane fx:id="SuspendPane" opacity="0.7" prefHeight="385.0" prefWidth="642.0" style="-fx-background-color: #858585" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <center>
+        <Label text="No Connection!">
+          <font>
+            <Font size="40.0" />
+          </font>
+        </Label>
+      </center>
+    </BorderPane>
+    <Pane fx:id="fadeOutPane" opacity="0.6" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: #858585" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+    <BorderPane id="SuspendPane" fx:id="addSitePane" layoutX="154.0" layoutY="111.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" opacity="1.0" prefHeight="163.0" prefWidth="335.0" rotate="180.0" snapToPixel="true" style="-fx-background-color: #47476b" visible="false">
+      <bottom>
+        <HBox alignment="CENTER_RIGHT" depthTest="INHERIT" fillHeight="true" pickOnBounds="true" prefHeight="-1.0" prefWidth="-1.0" spacing="20.0" BorderPane.alignment="TOP_RIGHT">
+          <children>
+            <Button fx:id="ok" contentDisplay="LEFT" defaultButton="true" mnemonicParsing="false" onMouseClicked="#doAdd" text="OK" textAlignment="CENTER" underline="false" wrapText="false" HBox.hgrow="SOMETIMES">
+              <font>
+                <Font size="16.0" fx:id="x1" />
+              </font>
+            </Button>
+            <Button fx:id="cancel" cancelButton="true" font="$x1" mnemonicParsing="false" onMouseClicked="#cancelSiteAdd" text="Cancel" />
+          </children>
+          <padding>
+            <Insets bottom="5.0" left="20.0" right="20.0" top="5.0" />
+          </padding>
+        </HBox>
+      </bottom>
+      <center>
+        <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+          <children>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="20.0" VBox.vgrow="NEVER">
+              <children>
+                <Label text="Site:" textFill="WHITE" HBox.hgrow="NEVER">
+                  <HBox.margin>
+                    <Insets left="10.0" />
+                  </HBox.margin>
+                </Label>
+                <TextField fx:id="siteUrl" maxHeight="50.0" prefWidth="200.0" HBox.hgrow="SOMETIMES">
+                  <HBox.margin>
+                    <Insets left="10.0" right="10.0" />
+                  </HBox.margin>
+                </TextField>
+              </children>
+            </HBox>
+          </children>
+        </VBox>
+      </center>
+      <rotationAxis>
+        <Point3D x="1.0" z="1.0" />
+      </rotationAxis>
+    </BorderPane>
+  </children>
+</AnchorPane>
