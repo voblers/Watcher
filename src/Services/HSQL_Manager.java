@@ -77,7 +77,25 @@ public class HSQL_Manager {
                     + "select *\n"
                     + " from settings \n"
                     + "where key='windowMaximized')");
-            
+            connection.createStatement().execute("insert into settings (key, value)\n"
+                    + "select 'runBackground', '0' from (values(0))\n"
+                    + "where not exists(\n"
+                    + "select *\n"
+                    + " from settings \n"
+                    + "where key='runBackground')");
+            connection.createStatement().execute("insert into settings (key, value)\n"
+                    + "select 'screenX', '0' from (values(0))\n"
+                    + "where not exists(\n"
+                    + "select *\n"
+                    + " from settings \n"
+                    + "where key='screenX')");
+            connection.createStatement().execute("insert into settings (key, value)\n"
+                    + "select 'screenY', '0' from (values(0))\n"
+                    + "where not exists(\n"
+                    + "select *\n"
+                    + " from settings \n"
+                    + "where key='screenY')");
+
             if (getRowCount("responsecodes") == 0) {
                 connection.createStatement().execute("insert into responsecodes values(100, 'Continue', 'The server has received the request headers and the client should proceed to send the request body (in the case of a request for which a body needs to be sent; for example, a POST request). Sending a large request body to a server after a request has been rejected for inappropriate headers would be inefficient. To have a server check the request''s headers, a client must send Expect: 100-continue as a header in its initial request and receive a 100 Continue status code in response before sending the body. The response 417 Expectation Failed indicates the request should not be continued.');\n"
                         + "insert into responsecodes values(101, 'Switching Protocols', 'The requester has asked the server to switch protocols and the server has agreed to do so.');\n"
@@ -179,7 +197,7 @@ public class HSQL_Manager {
             return true;
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
-            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
+            ServiceHandler.getNotificationService().showNotification(ex.getCause().toString(), Const.notificationError, 5);
             return false;
         }
     }
@@ -199,7 +217,7 @@ public class HSQL_Manager {
             return returnList;
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
-            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
+            ServiceHandler.getNotificationService().showNotification(ex.getCause().toString(), Const.notificationError, 5);
             return returnList;
         }
     }
@@ -212,8 +230,7 @@ public class HSQL_Manager {
             statement.executeUpdate();
             return true;
         } catch (SQLException ex) {
-            ex.printStackTrace();
-            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
+            ServiceHandler.getNotificationService().showNotification(ex.getCause().toString(), Const.notificationError, 5);
             return false;
         }
     }
@@ -232,7 +249,7 @@ public class HSQL_Manager {
             statement.executeUpdate();
             return true;
         } catch (SQLException ex) {
-            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
+            ServiceHandler.getNotificationService().showNotification(ex.getCause().toString(), Const.notificationError, 5);
             return false;
         }
     }
@@ -261,7 +278,7 @@ public class HSQL_Manager {
             return returnList;
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
-            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
+            ServiceHandler.getNotificationService().showNotification(ex.getCause().toString(), Const.notificationError, 5);
             return returnList;
         }
     }
@@ -282,7 +299,7 @@ public class HSQL_Manager {
             return returnList;
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
-            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
+            ServiceHandler.getNotificationService().showNotification(ex.getCause().toString(), Const.notificationError, 5);
             return returnList;
         }
     }
@@ -295,17 +312,32 @@ public class HSQL_Manager {
             statement.executeUpdate();
             return true;
         } catch (SQLException ex) {
-            new TrayNotification(ex.getCause().toString(), Const.notificationError, 5).run();
+            ServiceHandler.getNotificationService().showNotification(ex.getCause().toString(), Const.notificationError, 5);
             return false;
         }
     }
 
     public static int getSettingInt(String key) {
-        return Integer.valueOf(getSettingString(key)).intValue();
+        Integer result;
+        try{
+            result = Integer.valueOf(getSettingString(key));
+        }
+        catch (NumberFormatException ex){
+            result = 0;
+        }
+        
+        return result;
     }
 
     public static double getSettingDouble(String key) {
-        return Double.valueOf(getSettingString(key));
+        Double result;
+        try {
+            result = Double.valueOf(getSettingString(key));
+        }
+        catch(NumberFormatException ex){
+            result = 0.0;
+        }
+        return result;
     }
 
     public static String getSettingString(String key) {

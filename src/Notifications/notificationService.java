@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package Notifications;
 
 import java.util.concurrent.ExecutorService;
@@ -20,29 +19,28 @@ public class notificationService {
     private ExecutorService executor = null;
     private TrayService tray = null;
     private final NotificationQueue queue = new NotificationQueue();
-    
+
     public notificationService() {
         executor = Executors.newFixedThreadPool(threadCount);
         tray = new TrayService();
         executor.execute(tray);
-        
-        queue.addListener(() -> {
-            System.out.println("Item added and should run!");
+
+        queue.addListener((int ID) -> {
+            TrayNotification notification = new TrayNotification(ID, queue.get(ID).message, queue.get(ID).messageType, queue.get(ID).timeout, queue.get(ID).onAction);
+            executor.execute(notification);
         });
     }
-    
+
     public void showNotification(String message, int messageType, double seconds) {
-        /*TrayNotification notification = new TrayNotification(message, messageType, seconds);
-        executor.execute(notification);*/
-        
-        queue.addNotification(message, messageType, seconds, null);
+        queue.addNotification(message, messageType, seconds);
     }
-    
+
     public void showNotification(String message, int messageType, EventHandler onAction, double seconds) {
-        /*TrayNotification notification = new TrayNotification(message, messageType, onAction, seconds);
-        executor.execute(notification);*/
-        
-        queue.addNotification(message, messageType, seconds, onAction);
+        queue.addNotification(message, messageType, seconds);
     }
-    
+
+    public void removenotification(int ID) {
+        queue.removeNotification(ID);
+    }
+
 }

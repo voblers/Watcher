@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 
 /**
@@ -19,12 +20,12 @@ public class NotificationQueue {
 
     public class Notification {
 
+        int ID;
         String message;
         int messageType;
         double timeout;
         EventHandler onAction;
 
-        private int ID;
         private LocalDateTime time;
 
         public Notification(int ID, String message, int messageType, double timeout, EventHandler onAction) {
@@ -59,7 +60,7 @@ public class NotificationQueue {
         listeners.add(toAdd);
     }
 
-    public void addNotification(String message, int messageType, double timout, EventHandler onAction) {
+    public void addNotification(String message, int messageType, double timout) {
         for (Notification a : queue) {
             if (a.message.equals(message) && a.messageType == messageType) {
                 return;
@@ -67,9 +68,14 @@ public class NotificationQueue {
         }
 
         int ID = queue.isEmpty() ? 1 : queue.size() + 1;
-        queue.add(new Notification(ID, message, messageType, timout, onAction));
+        queue.add(new Notification(ID, message, messageType, timout, new EventHandler() {
+            @Override
+            public void handle(Event event) {
+                removeNotification(ID);
+            }
+        }));
         listeners.stream().forEach((evt) -> {
-            evt.itemAdded();
+            evt.itemAdded(ID);
         });
     }
 
@@ -79,6 +85,22 @@ public class NotificationQueue {
         } else {
             return queue.get(0);
         }
+    }
+
+    public Notification get(int ID) {
+        if (queue.isEmpty()) {
+            return new Notification();
+        }
+        Iterator<Notification> iter = queue.iterator();
+
+        while (iter.hasNext()) {
+            Notification a = iter.next();
+            if (a.ID == ID) {
+                return a;
+            }
+        }
+
+        return new Notification();
     }
 
     public void removeNotification(int ID) {

@@ -60,8 +60,8 @@ public class TrayService implements Runnable {
         });
 
         //Add components to pop-up menu
-        popup.add(exitItem);
         popup.add(showUI);
+        popup.add(exitItem);
 
         trayIcon.setPopupMenu(popup);
 

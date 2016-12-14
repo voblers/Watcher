@@ -6,6 +6,15 @@
 package Notifications;
 
 import Data.Const;
+import Services.ServiceHandler;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.event.EventHandler;
 import javafx.util.Duration;
 import org.controlsfx.control.Notifications;
@@ -16,39 +25,43 @@ import org.controlsfx.control.Notifications;
  */
 public class TrayNotification implements Runnable {
 
+    private final int ID;
     private final String title = "Watcher";
     private final String message;
     EventHandler onAction = null;
     double dismiss = 0;
     private final int messageType;
 
-    public TrayNotification(String message, int messageType, double dismiss) {
+    public TrayNotification(int ID, String message, int messageType, double dismiss) {
         this.message = message;
         this.dismiss = dismiss;
         this.messageType = messageType;
+        this.ID = ID;
     }
 
-    public TrayNotification(String message, int messageType, EventHandler onAction, double dismiss) {
+    public TrayNotification(int ID, String message, int messageType, double dismiss, EventHandler onAction) {
         this.message = message;
         this.onAction = onAction;
         this.messageType = messageType;
+        this.dismiss = dismiss;
+        this.ID = ID;
     }
 
     @Override
     public void run() {
         javafx.application.Platform.runLater(() -> {
             Notifications notification = Notifications.create();
-            
+
             if (onAction != null) {
                 notification.onAction(onAction);
             }
-            
+
             if (dismiss > 0) {
                 notification.hideAfter(Duration.seconds(dismiss));
             } else {
                 notification.hideAfter(Duration.INDEFINITE);
             }
-            
+
             switch (messageType) {
                 case Const.notificationError:
                     notification.title(title);
@@ -71,7 +84,14 @@ public class TrayNotification implements Runnable {
                     notification.showWarning();
                     break;
             }
-            
+
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    ServiceHandler.getNotificationService().removenotification(ID);
+                }
+            }, (long) (1000 * dismiss));
+
         });
     }
 

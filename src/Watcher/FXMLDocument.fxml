@@ -15,7 +15,7 @@
   <children>
     <BorderPane prefHeight="200.0" prefWidth="320.0" visible="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
       <center>
-        <SplitPane disable="false" dividerPositions="0.05828220858895705" focusTraversable="true" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
+        <SplitPane disable="false" dividerPositions="0.0706436420722135" focusTraversable="false" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0">
           <items>
             <Label fx:id="statusLabel" alignment="CENTER" blendMode="MULTIPLY" contentDisplay="CENTER" maxHeight="-Infinity" maxWidth="1.7976931348623157E308" prefHeight="62.0" prefWidth="440.0" style="-fx-background-color: #858585" text="UNKNOWN">
               <font>
@@ -24,11 +24,11 @@
             </Label>
             <Accordion fx:id="sections">
               <expandedPane>
-                <TitledPane id="x3" fx:id="chartPane" animated="false" text="Chart">
+                <TitledPane id="x3" fx:id="chartPane" animated="false" focusTraversable="false" text="Chart">
                   <content>
                     <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                       <children>
-                        <PieChart id="PieChart" fx:id="uptime" minHeight="140.0" prefHeight="239.0" prefWidth="436.0" title="" titleSide="TOP" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                        <PieChart id="PieChart" fx:id="uptime" focusTraversable="false" minHeight="140.0" prefHeight="239.0" prefWidth="436.0" title="" titleSide="TOP" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                       </children>
                     </AnchorPane>
                   </content>
@@ -36,7 +36,7 @@
               </expandedPane>
               <panes>
                 <fx:reference source="chartPane" />
-                <TitledPane id="x2" fx:id="detailsPane" animated="false" text="Details">
+                <TitledPane id="x2" fx:id="detailsPane" animated="false" focusTraversable="false" text="Details">
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                       <children>
@@ -49,7 +49,7 @@
                                     <Insets />
                                   </HBox.margin>
                                 </Button>
-                                <Button fx:id="cl" mnemonicParsing="false" onMousePressed="#clear" text="Clear Statistics" />
+                                <Button fx:id="cl" focusTraversable="false" mnemonicParsing="false" onMousePressed="#clear" text="Clear Statistics" />
                               </children>
                               <padding>
                                 <Insets />
@@ -70,18 +70,18 @@
         </SplitPane>
       </center>
       <left>
-        <AnchorPane prefHeight="200.0" prefWidth="200.0">
+        <AnchorPane prefHeight="639.0" prefWidth="214.0">
           <children>
             <BorderPane prefHeight="385.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
               <bottom>
                 <ToolBar>
                   <items>
-                    <Button fx:id="addSite" mnemonicParsing="false" onAction="#addSite" text="+" />
+                    <Button fx:id="addSite" focusTraversable="false" mnemonicParsing="false" onAction="#addSite" text="+" />
                   </items>
                 </ToolBar>
               </bottom>
               <center>
-                <ListView fx:id="siteList" editable="true" maxWidth="500.0" prefHeight="-1.0">
+                <ListView fx:id="siteList" editable="true" focusTraversable="false" maxWidth="500.0" prefHeight="608.0" prefWidth="247.0">
                   <effect>
                     <Glow />
                   </effect>
@@ -92,11 +92,22 @@
         </AnchorPane>
       </left>
       <top>
-        <ToolBar>
-          <items>
-            <ToggleButton fx:id="powerSwitch" mnemonicParsing="false" onAction="#startWatchDog" text="On/Off" />
-          </items>
-        </ToolBar>
+        <VBox prefHeight="46.0" prefWidth="1042.0" style="-fx-background-color: #858585">
+          <children>
+            <MenuBar>
+              <menus>
+                <Menu mnemonicParsing="false" text="Watcher">
+                  <items>
+                    <CheckMenuItem mnemonicParsing="false" onAction="#runBackground" text="Start in background" fx:id="runBackground" />
+                    <SeparatorMenuItem mnemonicParsing="false" />
+                    <MenuItem mnemonicParsing="false" onAction="#exitApplication" text="Exit" />
+                  </items>
+                </Menu>
+              </menus>
+            </MenuBar>
+            <ToggleButton fx:id="powerSwitch" focusTraversable="false" mnemonicParsing="false" onAction="#startWatchDog" text="On/Off" />
+          </children>
+        </VBox>
       </top>
     </BorderPane>
     <BorderPane fx:id="SuspendPane" opacity="0.7" prefHeight="385.0" prefWidth="642.0" style="-fx-background-color: #858585" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

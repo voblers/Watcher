@@ -1,4 +1,4 @@
- /*
+/*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -23,10 +23,10 @@ import Notifications.notificationService;
 import Services.GlobalServiceControlVariables;
 import dao.Site;
 import dao.WatchObj;
+import java.awt.event.KeyEvent;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
-import java.sql.SQLException;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
@@ -46,6 +46,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -60,6 +61,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import org.apache.commons.validator.UrlValidator;
@@ -78,6 +80,9 @@ public class FXMLDocumentController implements Initializable {
 
     private ObservableList<String> items = FXCollections.observableArrayList();
     private processData processor = null;
+
+    @FXML
+    private CheckMenuItem runBackground;
 
     @FXML
     private PieChart uptime;
@@ -120,6 +125,7 @@ public class FXMLDocumentController implements Initializable {
 
     @FXML
     protected void addSite(ActionEvent event) {
+        siteUrl.setText("");
         addSitePane.setVisible(true);
         RotateTransition rt = new RotateTransition(Duration.millis(200), addSitePane);
         rt.setFromAngle(180);
@@ -138,7 +144,7 @@ public class FXMLDocumentController implements Initializable {
                 if (watcherManager.ifRunning()) {
                     watcherManager.stop();
                 }
-                new TrayNotification("There are no sites to run WatchDog on", Const.notificationInfo, 5).run();
+                ServiceHandler.getNotificationService().showNotification("There are no sites to run WatchDog on", Const.notificationInfo, 5);
             } else {
                 watcherManager.start();
                 changeStatusLabel("DETECTING...");
@@ -206,6 +212,13 @@ public class FXMLDocumentController implements Initializable {
         siteList.getSelectionModel().selectedItemProperty().addListener(new listViewChangeListener());
         siteList.setItems(items);
         siteList.autosize();
+        
+        siteUrl.addEventHandler(javafx.scene.input.KeyEvent.KEY_TYPED, new EventHandler<javafx.scene.input.KeyEvent>() {
+            @Override
+            public void handle(javafx.scene.input.KeyEvent event) {
+                siteUrl.setBlendMode(null);
+            }
+        });
 
         if (count > 0) {
             siteList.getSelectionModel().select(0);
@@ -229,6 +242,12 @@ public class FXMLDocumentController implements Initializable {
                 processor.cancelFilter(getSelectedItem());
             }
         });
+
+        if (HSQL_Manager.getSettingInt("runBackground") == 1) {
+            runBackground.setSelected(true);
+        } else {
+            runBackground.setSelected(false);
+        }
     }
 
     public void isInternet(boolean inpB) {
@@ -350,6 +369,21 @@ public class FXMLDocumentController implements Initializable {
         }
     }
 
+    @FXML
+    protected void exitApplication(ActionEvent event) {
+        JavaFXApplication4.getStage().fireEvent(new WindowEvent(JavaFXApplication4.getStage(), WindowEvent.WINDOW_CLOSE_REQUEST));
+    }
+
+    @FXML
+    protected void runBackground(ActionEvent event) {
+        CheckMenuItem item = (CheckMenuItem) event.getSource();
+        if (item.isSelected()) {
+            HSQL_Manager.setSetting("runBackground", 1);
+        } else {
+            HSQL_Manager.setSetting("runBackground", 0);
+        }
+    }
+
     private void fadeout(boolean inpB) {
         if (inpB) {
             javafx.animation.FadeTransition ft = new FadeTransition(Duration.millis(200), fadeOutPane);
@@ -391,7 +425,8 @@ public class FXMLDocumentController implements Initializable {
                 watcherManager.stop();
                 changeStatusLabel("UNKNOWN");
                 changeStatusPaneStyle(Const.unknownStyle);
-                new TrayNotification("Disabling WatchDog because no items exists in the list", Const.notificationInfo, 5).run();
+                powerSwitch.setSelected(false);
+                ServiceHandler.getNotificationService().showNotification("Disabling WatchDog because no items exists in the list", Const.notificationInfo, 5);
             }
         }
     }

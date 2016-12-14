@@ -11,5 +11,5 @@ package Notifications;
  * @author BB3605
  */
 public interface NotificationListChangeEvent {
-    void itemAdded();
+    void itemAdded(int ID);
 }
