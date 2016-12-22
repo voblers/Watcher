@@ -149,11 +149,13 @@ public class FXMLDocumentController implements Initializable {
                 watcherManager.start();
                 changeStatusLabel("DETECTING...");
                 changeStatusPaneStyle(Const.detectingStyle);
+                HSQL_Manager.startMonitor();
             }
         } else {
             watcherManager.stop();
             changeStatusLabel("UNKNOWN");
             changeStatusPaneStyle(Const.unknownStyle);
+            HSQL_Manager.stopMonitor();
         }
     }
 

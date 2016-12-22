@@ -102,6 +102,8 @@ public final class processData {
     public void renew(String site) {
         renewChart(site);
         renewDetails(site);
+        
+        System.out.println(HSQL_Manager.getUptime(site));
     }
 
     private void renewChart(String site) {

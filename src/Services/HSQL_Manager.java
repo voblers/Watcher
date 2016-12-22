@@ -6,11 +6,11 @@
 package Services;
 
 import Data.Const;
-import Notifications.TrayNotification;
 import dao.Site;
 import dao.StatisticsObj;
 import dao.WatchObj;
 import dao.detailsObject;
+import java.math.BigDecimal;
 import java.sql.Statement;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -42,7 +42,7 @@ public class HSQL_Manager {
         try {
             connection.createStatement().execute("CREATE TABLE IF NOT EXISTS sites(\n"
                     + "	id INTEGER IDENTITY PRIMARY KEY,\n"
-                    + "	site varchar(1024)\n"
+                    + "	site varchar(1024) unique\n"
                     + "	);");
             connection.createStatement().execute("CREATE TABLE IF NOT EXISTS statistics(\n"
                     + "  id INTEGER IDENTITY PRIMARY KEY,\n"
@@ -58,6 +58,13 @@ public class HSQL_Manager {
                     + "key varchar(100) primary key,\n"
                     + "value varchar(2000)\n"
                     + ");");
+            connection.createStatement().execute("CREATE TABLE IF NOT EXISTS runtime(\n"
+                    + " id INTEGER IDENTITY PRIMARY KEY,\n"
+                    + "	site_id INTEGER references sites(ID) on delete cascade,\n"
+                    + "	start_date timestamp default sysdate,\n"
+                    + "	end_date timestamp,\n"
+                    + "	status INTEGER default 1\n"
+                    + ")");
 
             connection.createStatement().execute("insert into settings (key, value)\n"
                     + "select 'windowHeight', '900' from (values(0))\n"
@@ -96,6 +103,70 @@ public class HSQL_Manager {
                     + " from settings \n"
                     + "where key='screenY')");
 
+            if (!routineExists("start_monitor")) {
+                connection.createStatement().execute("create procedure start_monitor( IN siteID INTEGER)\n"
+                        + "MODIFIES SQL DATA\n"
+                        + "begin atomic\n"
+                        + "	insert into runtime(site_id) values(siteID);\n"
+                        + "end");
+            }
+
+            if (!routineExists("start_monitor_all")) {
+                connection.createStatement().execute("create procedure start_monitor_all()\n"
+                        + "MODIFIES SQL DATA\n"
+                        + "begin atomic\n"
+                        + "	FOR select id from sites DO\n"
+                        + "		call start_monitor(id);\n"
+                        + "	END FOR;\n"
+                        + "end;");
+            }
+
+            if (!routineExists("stop_monitor")) {
+                connection.createStatement().execute("create procedure stop_monitor( IN siteID INTEGER)\n"
+                        + "MODIFIES SQL DATA\n"
+                        + "begin atomic\n"
+                        + "	update runtime set status = 0, end_date = sysdate where site_id = siteID and status = 1;\n"
+                        + "end;");
+            }
+
+            if (!routineExists("stop_monitor_all")) {
+                connection.createStatement().execute("create procedure stop_monitor_all()\n"
+                        + "MODIFIES SQL DATA\n"
+                        + "begin atomic\n"
+                        + "	FOR select site_id from runtime where status = 1 DO\n"
+                        + "		call stop_monitor(site_id);\n"
+                        + "	END FOR;\n"
+                        + "end;");
+            }
+
+            if (!routineExists("calculate_last_check")) {
+                connection.createStatement().execute("create function calculate_last_check(IN siteID INTEGER)\n"
+                        + "returns timestamp\n"
+                        + "READS SQL DATA\n"
+                        + "begin atomic\n"
+                        + "	declare result timestamp;\n"
+                        + "	select max(check_date) into result from statistics a, sites b, runtime c\n"
+                        + "			where a.URL=b.site\n"
+                        + "			and c.id = siteID\n"
+                        + "			and a.check_date >= c.start_date;\n"
+                        + "			\n"
+                        + "	return result;\n"
+                        + "end;");
+            }
+
+            if (!routineExists("clean_runtime")) {
+                connection.createStatement().execute("create procedure clean_runtime()\n"
+                        + "MODIFIES SQL DATA\n"
+                        + "begin atomic\n"
+                        + "	FOR select id as \"main_id\" from runtime where status = 1 DO\n"
+                        + "		update runtime y set y.end_date = calculate_last_check(id),\n"
+                        + "			y.status = 0\n"
+                        + "		where y.id = \"main_id\";\n"
+                        + "	END FOR;\n"
+                        + "	\n"
+                        + "	delete from runtime where end_date is null;\n"
+                        + "end;");
+            }
             if (getRowCount("responsecodes") == 0) {
                 connection.createStatement().execute("insert into responsecodes values(100, 'Continue', 'The server has received the request headers and the client should proceed to send the request body (in the case of a request for which a body needs to be sent; for example, a POST request). Sending a large request body to a server after a request has been rejected for inappropriate headers would be inefficient. To have a server check the request''s headers, a client must send Expect: 100-continue as a header in its initial request and receive a 100 Continue status code in response before sending the body. The response 417 Expectation Failed indicates the request should not be continued.');\n"
                         + "insert into responsecodes values(101, 'Switching Protocols', 'The requester has asked the server to switch protocols and the server has agreed to do so.');\n"
@@ -157,6 +228,7 @@ public class HSQL_Manager {
                         + "insert into responsecodes values(511, 'Network Authentication Required', 'The client needs to authenticate to gain network access. Intended for use by intercepting proxies used to control access to the network (e.g., \"captive portals\" used to require agreement to Terms of Service before granting full Internet access via a Wi-Fi hotspot).');");
             }
 
+            //connection.prepareCall("{call clean_runtime()}").execute();
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -178,7 +250,42 @@ public class HSQL_Manager {
         }
     }
 
+    private static boolean triggerExists(String name) {
+        try {
+            ResultSet resultSet;
+            PreparedStatement statement = connection.prepareStatement("SELECT count(*) as total FROM INFORMATION_SCHEMA.triggers where trigger_name = ?");
+
+            statement.setString(1, name.toUpperCase());
+            resultSet = statement.executeQuery();
+            resultSet.next();
+
+            return resultSet.getInt("total") > 0;
+
+        } catch (SQLException ex) {
+            Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+
+    private static boolean routineExists(String name) {
+        try {
+            ResultSet resultSet;
+            PreparedStatement statement = connection.prepareStatement("SELECT count(*) as total FROM INFORMATION_SCHEMA.ROUTINES where routine_name = ?");
+
+            statement.setString(1, name.toUpperCase());
+            resultSet = statement.executeQuery();
+            resultSet.next();
+
+            return resultSet.getInt("total") > 0;
+
+        } catch (SQLException ex) {
+            Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+
     public static void exit() {
+        stopMonitor();
         try {
             connection.close();
         } catch (SQLException ex) {
@@ -319,13 +426,12 @@ public class HSQL_Manager {
 
     public static int getSettingInt(String key) {
         Integer result;
-        try{
+        try {
             result = Integer.valueOf(getSettingString(key));
-        }
-        catch (NumberFormatException ex){
+        } catch (NumberFormatException ex) {
             result = 0;
         }
-        
+
         return result;
     }
 
@@ -333,8 +439,7 @@ public class HSQL_Manager {
         Double result;
         try {
             result = Double.valueOf(getSettingString(key));
-        }
-        catch(NumberFormatException ex){
+        } catch (NumberFormatException ex) {
             result = 0.0;
         }
         return result;
@@ -416,5 +521,43 @@ public class HSQL_Manager {
         } catch (SQLException ex) {
             Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public static void startMonitor() {
+        try {
+            connection.prepareCall("{call start_monitor_all()}").execute();
+        } catch (SQLException ex) {
+            Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public static void stopMonitor() {
+        try {
+            connection.prepareCall("{call stop_monitor_all()}").execute();
+        } catch (SQLException ex) {
+            Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public static BigDecimal getUptime(String site) {
+        ResultSet resultSet;
+        PreparedStatement statement;
+        try {
+            statement = connection.prepareStatement("select convert(sum(UNIX_TIMESTAMP(nvl(end_date, sysdate))-UNIX_TIMESTAMP(start_date)), bigint) as result\n"
+                    + "	from (\n"
+                    + "		SELECT b.site, a.start_date, a.end_date FROM \"PUBLIC\".\"RUNTIME\" a, sites b where a.site_id = b.id\n"
+                    + "	)\n"
+                    + "	where site = ?\n"
+                    + "	group by site;");
+            statement.setString(1, site);
+
+            resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                return resultSet.getBigDecimal("result");
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(HSQL_Manager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return new BigDecimal(-1);
     }
 }

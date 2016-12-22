@@ -8,7 +8,7 @@
   </information>
   <resources>
     <j2se version="1.6+" java-vm-args="-Djava.net.preferIPv4Stack=true "  href="http://java.sun.com/products/autodl/j2se"/>
-    <jar href="Watcher.jar" size="5123791" download="eager" />
+    <jar href="Watcher.jar" size="5126056" download="eager" />
     <jar href="lib\commons-validator-1.4.0.jar" size="176897" download="eager" />
     <jar href="lib\controlsfx-8.40.12.jar" size="996389" download="eager" />
     <jar href="lib\hsqldb.jar" size="1515894" download="eager" />
